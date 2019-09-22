@@ -1,6 +1,7 @@
 // cargo run -p watcher
 extern crate clipboard_win;
 extern crate serde;
+extern crate regex;
 
 use clipboard_win::{Clipboard, set_clipboard_string, get_clipboard_string};
 use std::thread;
@@ -11,6 +12,7 @@ use std::io::Error;
 use warp::{self, path, Filter};
 use std::sync::{Mutex, Arc};
 use serde::{Serialize, Deserialize};
+use regex::Regex;
 
 const MAX_MEMORIES: usize = 1000;
 
@@ -39,17 +41,26 @@ fn main_proc() -> Result<(), Error> {
     // クリップボード監視
     let (sender, receiver) = channel();
 
+    // URL判定
+    let re_url = Regex::new(r"^(https?|ftp)(://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+)$").unwrap();
+
     let _handle1 = spawn(move || {
         let mut prev = String::new();
         loop {
             let s = get_clipboard_string();
             if let Ok(new_str) = s {
                 if new_str != prev {
-                    prev = new_str;
-                    // println!("in thread {}", &prev);
-                    if sender.send(Message::Text(prev.clone())).is_err() {
-                        println!("error in thread");
-                        break;
+                    prev = new_str.clone();
+                    if re_url.is_match(new_str.trim()) {
+                        if sender.send(Message::URL(prev.clone())).is_err() {
+                            println!("error in thread");
+                            break;
+                        }
+                    } else {
+                        if sender.send(Message::Text(prev.clone())).is_err() {
+                            println!("error in thread");
+                            break;
+                        }
                     }
                 }
             }
