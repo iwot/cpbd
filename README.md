@@ -6,9 +6,9 @@ APIサーバー（かつクリップボード監視）の立ち上げ。
 cargo run -p watcher
 ```
 
-`http://localhost:3030/memories` にアクセスすると、履歴がJSON形式で出力される。
+`http://localhost:3030/memories` 、 `http://localhost:3030/urls` にアクセスすると、履歴がJSON形式で出力される。
 
-`http://localhost:3030/memory/2` にアクセスすると、この場合は履歴中のインデックスが2である内容をクリップボードに登録する。
+`http://localhost:3030/memory/2` 、 `http://localhost:3030/url/2` にアクセスすると、この場合は履歴中のインデックスが2である内容をクリップボードに登録する。
 なお、インデックスは1からの開始となる。
 
 # TODO
