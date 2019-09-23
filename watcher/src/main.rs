@@ -3,11 +3,11 @@ extern crate clipboard_win;
 extern crate serde;
 extern crate regex;
 
-use clipboard_win::{Clipboard, set_clipboard_string, get_clipboard_string};
+use clipboard_win::{set_clipboard_string, get_clipboard_string};
 use std::thread;
 use std::time::Duration;
 use std::thread::spawn;
-use std::sync::mpsc::{channel, Sender};
+use std::sync::mpsc::{channel};
 use std::io::Error;
 use warp::{self, path, Filter};
 use std::sync::{Mutex, Arc};
@@ -76,6 +76,11 @@ fn main_proc() -> Result<(), Error> {
     let memories_getter_data = Arc::clone(&memories);
     let _handle2 = spawn(move || {
         
+        let quit_server = path!("exit").map(||{
+            std::process::exit(0);
+            ""
+        });
+
         // クリップボード履歴をJSON形式で表示
         let memories_show = path!("memories").map(move || {
             let mut data = memories_shower_data.lock().unwrap().clone();
@@ -105,7 +110,7 @@ fn main_proc() -> Result<(), Error> {
                 "".to_string()
             }
         });
-        let routes = warp::get2().and(memories_show.or(memories_get));
+        let routes = warp::get2().and(memories_show.or(memories_get).or(quit_server));
         warp::serve(routes).run(([127, 0, 0, 1], 3030));
     });
 
